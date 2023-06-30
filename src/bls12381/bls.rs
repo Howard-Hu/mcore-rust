@@ -23,6 +23,7 @@ use crate::bls12381::ecp;
 use crate::bls12381::ecp::ECP;
 use crate::bls12381::dbig::DBIG;
 use crate::bls12381::ecp2::ECP2;
+use crate::bls12381::fp12::FP12;
 //use crate::bls12381::fp4::FP4;
 use crate::bls12381::pair;
 use crate::bls12381::rom;
@@ -179,3 +180,46 @@ pub fn core_verify(sig: &[u8], m: &[u8], w: &[u8]) -> isize {
     }
     BLS_FAIL
 }
+
+/* aggred_sig = sig0+sig1+... */
+pub fn signature_aggregate<const N:usize>(aggred_sig: &mut [u8],sigs:[&[u8];N])->isize{
+    let mut aggre = ECP::new();
+    for sig in sigs{
+        let sig_ecp = ECP::frombytes(sig);
+        if !pair::g1member(&sig_ecp){
+            return BLS_FAIL;
+        }else{
+            aggre.add(&sig_ecp);
+        }
+    }
+    aggre.tobytes(aggred_sig,true);
+    BLS_OK
+}
+
+pub fn core_aggregate_verify<const N:usize>(pk: [&[u8];N],m:[&[u8];N],sig:&[u8])->isize{
+    let r = ECP::frombytes(&sig);
+    if !pair::g1member(&r){
+        return  BLS_FAIL;
+    }
+    let mut c1 =FP12::new();
+    c1.one();
+    for i in 0..N{
+        let xp = ECP2::frombytes(pk[i]);
+        let q = bls_hash_to_point(m[i]);
+        let pair_xp_q = pair::ate(&xp, &q);
+        c1.mul(&pair_xp_q);
+
+    }
+    let g = ECP2::generator();
+    let mut c2 = pair::ate(&g, &r);
+    c2 = pair::fexp(&c2);
+    c1 = pair::fexp(&c1);
+
+
+   if c1.equals(&c2){
+       BLS_OK
+   }else{
+       BLS_FAIL
+   }
+}
+
