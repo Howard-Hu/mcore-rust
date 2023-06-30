@@ -39,4 +39,4 @@ pub mod dilithium;
 pub mod kyber;
 pub mod x509;
 pub mod bls12381;
-pub mod main;
+pub mod test;

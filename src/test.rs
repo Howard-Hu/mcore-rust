@@ -1,11 +1,14 @@
-use mcore::bls12381::bls::{self, BLS_FAIL, BLS_OK};
-use mcore::bls12381::big;
+//use mcore::bls12381::bls::{self, BLS_FAIL, BLS_OK};
+//use mcore::bls12381::big;
+
+use crate::bls12381::bls::{self, BLS_FAIL, BLS_OK};
+use crate::bls12381::big;
 
 use rand;
 use rand::RngCore;
 
 
-pub fn main() {
+pub fn test_aggregate_and_verify() {
     let (_sk1,pk1,m1,sig1) = generator_sk_pk_m_sig();
     let (_sk2,pk2,m2,sig2) = generator_sk_pk_m_sig();
     let (_sk3,pk3,_m3,_sig3) = generator_sk_pk_m_sig();
